@@ -1,0 +1,53 @@
+version: '3'
+services:
+
+  cnc:
+    build: 
+     context: .
+     dockerfile: cnc/Dockerfile
+     #volumes:
+      #- ../Mirai-Source-Code:/app/Mirai-Source-Code
+    networks:
+      my_network:
+        ipv4_address: 192.168.66.2
+    expose:
+      - 23
+      - 101
+    ports:
+      - "23:23"
+      - "101:101"
+
+  bot:
+    #depends_on:
+     # - cnc   
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    networks:
+      my_network:
+        ipv4_address: 192.168.66.3
+        
+  victim:
+    build: ./victim
+    tty: true
+    networks:
+      my_network:
+        ipv4_address: 192.168.66.4
+    #expose:
+     # - 23
+    #ports:
+     # - "2323:23"
+
+  admin:
+    build: ./admin
+    networks:
+      my_network:
+        ipv4_address: 192.168.66.5
+
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.66.0/24
+
